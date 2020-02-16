@@ -33,7 +33,7 @@ class TLRUCacheTest(unittest.TestCase, CacheTestMixin):
     Cache = TLRUTestCache
 
     def test_ttu(self):
-        cache = TLRUCache(maxsize=2, ttu=lambda v: v, timer=Timer())
+        cache = TLRUCache(maxsize=6, ttu=lambda v: v, timer=Timer())
         self.assertEqual(0, cache.timer())
 
         cache[1] = 1
@@ -72,10 +72,17 @@ class TLRUCacheTest(unittest.TestCase, CacheTestMixin):
         self.assertEqual(2, cache[2])
         self.assertEqual(3, cache[3])
 
+        cache[1] = 1
+        self.assertEqual({1, 2, 3}, set(cache))
+        self.assertEqual(3, len(cache))
+        self.assertEqual(1, cache[1])
+        self.assertEqual(2, cache[2])
+        self.assertEqual(3, cache[3])
+
         cache.timer.tick()
-        self.assertEqual({3}, set(cache))
-        self.assertEqual(1, len(cache))
-        self.assertNotIn(1, cache)
+        self.assertEqual({1, 3}, set(cache))
+        self.assertEqual(2, len(cache))
+        self.assertEqual(1, cache[1])
         self.assertNotIn(2, cache)
         self.assertEqual(3, cache[3])
 

@@ -94,6 +94,7 @@ class TLRUCache(Cache):
         else:
             link.unlink()
         link.expire = time + self.__ttu(value)
+        # TODO: insert in sorted order or change data structure
         link.next = root = self.__root
         link.prev = prev = root.prev
         prev.next = root.prev = link
@@ -120,8 +121,10 @@ class TLRUCache(Cache):
         curr = root.next
         time = self.__timer()
         count = len(self.__links)
-        while curr is not root and curr.expire < time:
-            count -= 1
+        # TODO: prevent iterating over all elements
+        while curr is not root:
+            if curr.expire < time:
+                count -= 1
             curr = curr.next
         return count
 
@@ -159,12 +162,16 @@ class TLRUCache(Cache):
         curr = root.next
         links = self.__links
         cache_delitem = Cache.__delitem__
-        while curr is not root and curr.expire < time:
-            cache_delitem(self, curr.key)
-            del links[curr.key]
-            next = curr.next
-            curr.unlink()
-            curr = next
+        # TODO: prevent iterating over all elements
+        while curr is not root:
+            if curr.expire < time:
+                cache_delitem(self, curr.key)
+                del links[curr.key]
+                next = curr.next
+                curr.unlink()
+                curr = next
+            else:
+                curr = curr.next
 
     def clear(self):
         with self.__timer as time:
